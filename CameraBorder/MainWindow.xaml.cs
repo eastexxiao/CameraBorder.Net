@@ -98,5 +98,11 @@ namespace CameraBorder
                 }
             }
         }
+
+        private void Button_Click_3(object sender, RoutedEventArgs e)
+        {
+            WatermarkGenerator q = new WatermarkGenerator();
+            q.Test();
+        }
     }
 }

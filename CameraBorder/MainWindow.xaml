@@ -7,9 +7,12 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="309,295,0,0" VerticalAlignment="Top" Click="Button_Click"/>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="400,179,0,0" VerticalAlignment="Top" Click="Button_Click_1"/>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="60,61,0,0" VerticalAlignment="Top" Click="Button_Click_2"/>
+        <Button Content="Button" HorizontalAlignment="Left" Margin="204,371,0,0" VerticalAlignment="Top" Click="Button_Click"/>
+        <Button Content="Button" HorizontalAlignment="Left" Margin="26,24,0,0" VerticalAlignment="Top" Click="Button_Click_1"/>
+        <Button Content="Button" HorizontalAlignment="Left" Margin="146,371,0,0" VerticalAlignment="Top" Click="Button_Click_2"/>
+        <Border BorderBrush="Black" BorderThickness="1">
+            <Button Content="Button" Margin="91,23,581,362" Click="Button_Click_3"/>
+        </Border>
 
     </Grid>
 </Window>
