@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -103,6 +104,47 @@ namespace CameraBorder
         {
             WatermarkGenerator q = new WatermarkGenerator();
             q.Test();
+        }
+
+        private void Button_Click_4(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void Button_Click_5(object sender, RoutedEventArgs e)
+        {
+            WatermarkGenerator q = new WatermarkGenerator();
+            q.Test();
+        }
+
+
+        private Dictionary<string, string?> kvs = new ();
+        private void Button_Click_6(object sender, RoutedEventArgs e)
+        {
+            var t = ExifInfo.Parse("sony_a7r5_argb.JPG");
+            Type q = t.GetType();
+            PropertyInfo[] pList = q.GetProperties();
+            foreach (var propertyInfo in pList)
+            {
+                Trace.WriteLine(propertyInfo.Name + " => " + propertyInfo.GetValue(t, null));
+                kvs[propertyInfo.Name] = propertyInfo.GetValue(t, null)?.ToString();
+            }
+
+            Regex reg = new Regex(@"\{\{(.*?)\}\}");
+            var input = txtInput.Text;
+            var output = reg.Replace(input, new MatchEvaluator(m =>
+            
+                kvs[m.Groups[1].Value]??"Not Exist"
+            ));
+            Trace.WriteLine(output);
+            txtOutput.Text = output;
+
+        }
+
+        private void Button_Click_7(object sender, RoutedEventArgs e)
+        {
+            WatermarkGenerator q = new WatermarkGenerator();
+            q.Test1();
         }
     }
 }

@@ -83,7 +83,7 @@ namespace CameraBorder
             
         }
 
-        public bool Decode(string filename,bool using35Focal = false, LensSize lensSize = LensSize.FullFrame, string userName = "", bool cover = false, string userCopy = "", DateFormat dateFormat = DateFormat.Long, TimeFormat timeFormat = TimeFormat.TwentyFour)
+        public bool Decode(string filename,bool using35Focal = false, LensSize lensSize = LensSize.FullFrame, string userName = "", bool cover = false, string userCopy = "",bool coverCopy = false, DateFormat dateFormat = DateFormat.Long, TimeFormat timeFormat = TimeFormat.TwentyFour)
         {
             Using35mm = using35Focal;
             _dateFormat = dateFormat;
@@ -194,10 +194,10 @@ namespace CameraBorder
 
         }
 
-        public static ExifInfo? Parse(string filename)
+        public static ExifInfo? Parse(string filename, bool using35Focal = false, LensSize lensSize = LensSize.FullFrame, string? userName = "", bool cover = false, string? userCopy = "", bool coverCopy = false, DateFormat dateFormat = DateFormat.Long, TimeFormat timeFormat = TimeFormat.TwentyFour)
         {
             ExifInfo info = new();
-            return info.Decode(filename) ? info : null;
+            return info.Decode(filename, using35Focal, lensSize, userName, cover, userCopy,  coverCopy, dateFormat, timeFormat) ? info : null;
         }
 
         
