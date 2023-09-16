@@ -73,6 +73,7 @@ namespace CameraBorder
         public int PhotoHeight { get; private set; } = -1;
         public int PhotoWidth { get; private set; } = -1;
         public bool Using35mm = false;
+        public int Rotate { get; private set; } = 1;
         
         private DateFormat _dateFormat = DateFormat.Long;
         private TimeFormat _timeFormat = TimeFormat.TwentyFour;
@@ -114,6 +115,18 @@ namespace CameraBorder
             //Trace.WriteLine(@$">>>>>>>>>>{jpegs.GetInt32(JpegDirectory.TagImageHeight)}");
             PhotoWidth = jpegInfo.GetInt32(JpegDirectory.TagImageWidth);
             PhotoHeight = jpegInfo.GetInt32(JpegDirectory.TagImageHeight);
+
+            var rotR = exifIfdInfo.TryGetInt32(ExifDirectoryBase.TagOrientation, out var rot);
+            //Trace.WriteLine(@$"Rot=====>{Rot}");
+            if (rotR)
+            {
+                Rotate = rot;
+            }
+
+            if (Rotate is 8 or 7 or 6 or 5)
+            {
+                (PhotoHeight, PhotoWidth) = (PhotoWidth, PhotoHeight);
+            }
 
             CameraManufacturer = exifIfdInfo.GetString(ExifDirectoryBase.TagMake);
             CameraModel = exifIfdInfo.GetString(ExifDirectoryBase.TagModel);

@@ -15,6 +15,7 @@
         <TextBox HorizontalAlignment="Left" Name="txtInput"  Margin="26,95,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="341"/>
         <TextBox HorizontalAlignment="Left" Name="txtOutput"  Margin="26,130,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="341"/>
         <Button Content="Button" HorizontalAlignment="Left" Margin="400,19,0,0" VerticalAlignment="Top" RenderTransformOrigin="-4.827,-4.69" Click="Button_Click_7"/>
+        <Button Content="Button" HorizontalAlignment="Left" Margin="26,172,0,0" VerticalAlignment="Top" RenderTransformOrigin="-2.788,-1.97" Click="Button_Click_8"/>
 
 
     </Grid>

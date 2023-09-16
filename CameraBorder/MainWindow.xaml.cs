@@ -86,7 +86,11 @@ namespace CameraBorder
             //string filePath = "nk_z9_export.jpg";
             //string filePath = "sony_a7r5_export.jpg";
             //string filePath = "sony_a7m4_tl.jpg";
-            string filePath = "sony_a7r5_argb.JPG";
+            //string filePath = "sony_a7r5_argb.JPG";
+            //string filePath = "nk_z9.jpg";
+            //DSC07087.jpg
+            //string filePath = "DSC07087.jpg";
+            string filePath = "canon_r5.jpg";
 
             var metas = JpegMetadataReader.ReadMetadata(filePath);
             foreach (var meta in metas)
@@ -145,6 +149,12 @@ namespace CameraBorder
         {
             WatermarkGenerator q = new WatermarkGenerator();
             q.Test1();
+        }
+
+        private void Button_Click_8(object sender, RoutedEventArgs e)
+        {
+            WatermarkGenerator q = new WatermarkGenerator();
+            q.Test3();
         }
     }
 }
