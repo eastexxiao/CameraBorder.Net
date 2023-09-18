@@ -107,7 +107,7 @@ namespace CameraBorder
         private void Button_Click_3(object sender, RoutedEventArgs e)
         {
             WatermarkGenerator q = new WatermarkGenerator();
-            q.Test();
+            
         }
 
         private void Button_Click_4(object sender, RoutedEventArgs e)
@@ -118,7 +118,7 @@ namespace CameraBorder
         private void Button_Click_5(object sender, RoutedEventArgs e)
         {
             WatermarkGenerator q = new WatermarkGenerator();
-            q.Test();
+            
         }
 
 
@@ -148,13 +148,13 @@ namespace CameraBorder
         private void Button_Click_7(object sender, RoutedEventArgs e)
         {
             WatermarkGenerator q = new WatermarkGenerator();
-            q.Test1();
+            
         }
 
         private void Button_Click_8(object sender, RoutedEventArgs e)
         {
             WatermarkGenerator q = new WatermarkGenerator();
-            q.Test3();
+       
         }
     }
 }

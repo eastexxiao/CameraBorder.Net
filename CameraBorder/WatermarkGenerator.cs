@@ -12,7 +12,7 @@ using System.Windows.Media.Media3D;
 
 namespace CameraBorder
 {
-    public delegate void UpdateStage(string stage, int process);
+    public delegate void UpdateStage(string filename,string stage, int process);
 
     public delegate void GenerateFail(string filename, string reason);
 
@@ -51,9 +51,11 @@ namespace CameraBorder
         public bool Using35 { get; set; } = false;
         public LensSize LensSize { get; set; } = LensSize.FullFrame;
     }
+
     internal class WatermarkGenerator
     {
         private List<string>? fileList;
+
         //private WatermarkConfig? config;
         private PrivateFontCollection? pfc;
 
@@ -66,11 +68,10 @@ namespace CameraBorder
                 pfc.AddFontFile(fontName);
             }
         }
-        
+
         public WatermarkGenerator()
         {
             AddPrivateFont();
-
         }
 
         //private Dictionary<string, string?>? tmpDict = null;
@@ -79,41 +80,49 @@ namespace CameraBorder
         {
             if (x / y >= 1)
             {
-                return 0.055;
+                return 0.08;
             }
             else
             {
-                return 0.09;
+                return 0.13;
             }
         }
 
-        private bool ConcatenateSrcImageAndWatermark(ref Bitmap org, ref Bitmap watermark, int whiteBoardWidth = 0)
+        private bool ConcatenateSrcImageAndWatermark(ref Bitmap org, ref Bitmap watermark, Color backColor, int whiteBoardWidth = 0)
         {
             var targetWidth = org.Width + 2 * whiteBoardWidth;
-            var targetHeight = org.Height+watermark.Height + 1 * whiteBoardWidth;
+            var targetHeight = org.Height + watermark.Height + 1 * whiteBoardWidth;
             Bitmap img = new Bitmap(targetWidth, targetHeight);
             Graphics g = Graphics.FromImage(img);
-            g.FillRectangle(new SolidBrush(Color.White), new Rectangle(0, 0, targetWidth, targetHeight));
+            g.FillRectangle(new SolidBrush(backColor), new Rectangle(0, 0, targetWidth, targetHeight));
             g.DrawImage(org, whiteBoardWidth, whiteBoardWidth, org.Width, org.Height);
-            g.DrawImage(watermark, (targetWidth-watermark.Width)/2, org.Height+whiteBoardWidth, watermark.Width, watermark.Height);
+            g.DrawImage(watermark, (targetWidth - watermark.Width) / 2, org.Height + whiteBoardWidth, watermark.Width,
+                watermark.Height);
             org.Dispose();
             org = img;
             g.Dispose();
             return true;
         }
 
-        private bool GenerateWatermark(string filename, ref string reason, UpdateStage update,  WatermarkConfig watermarkConfig)
+        private bool GenerateWatermark(string filename, ref string reason, UpdateStage update,
+            WatermarkConfig watermarkConfig, string outputFilePath)
         {
-            update(@$"Start Processing File => {filename}", 1);
-            update("Reading Exif Info", 2);
-            var t = ExifInfo.Parse(filename: filename, using35Focal: watermarkConfig.Using35, userName: watermarkConfig.ArtistName,
-                cover: watermarkConfig.OverwriteArtistName, lensSize: watermarkConfig.LensSize, userCopy: watermarkConfig.CopyrightInfo,
+            var fileNameEasy = System.IO.Path.GetFileName(filename);
+            var fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(filename);
+            var outputFileName = outputFilePath + "\\" + fileNameWithoutExtension + "_C.jpg";
+            update($@"{fileNameEasy}", @"Starting", 0);
+            update($@"{fileNameEasy}", @"Load Info", 0);
+            var t = ExifInfo.Parse(filename: filename, using35Focal: watermarkConfig.Using35,
+                userName: watermarkConfig.ArtistName,
+                cover: watermarkConfig.OverwriteArtistName, lensSize: watermarkConfig.LensSize,
+                userCopy: watermarkConfig.CopyrightInfo,
                 coverCopy: watermarkConfig.OverwriteCopyright);
             if (t == null)
             {
-                update("Failed!", 2);
+                update($@"{fileNameEasy}", @"Failed", 0);
                 return false;
             }
+
             Dictionary<string, string?> tmpDict = new();
             Type q = t.GetType();
             PropertyInfo[] pList = q.GetProperties();
@@ -126,7 +135,7 @@ namespace CameraBorder
             var ratio = CalcWatermarkRatio(t.PhotoWidth, t.PhotoHeight);
             var watermarkWidth = t.PhotoWidth;
             var watermarkHeight = (int)(watermarkWidth * ratio);
-            update($"Loading Logo{t.CameraManufacturer}",4);
+            update($@"{fileNameEasy}", $"{t.CameraManufacturer}", 0);
             var logoFilePath = t.CameraManufacturer switch
             {
                 { } a when a.Contains("NIKON") => "./logos/nikon.png",
@@ -149,9 +158,9 @@ namespace CameraBorder
             var logoImage = Image.FromFile(logoFilePath);
             Bitmap logoBitmap = new(logoImage);
             ZoomBitmap(ref logoBitmap, (double)watermarkHeight / logoBitmap.Height);
-            
+
             Bitmap result = new(1, 1);
-            update("Convert Strings", 5);
+            update($@"{fileNameEasy}", "Convert Strings", 5);
             Regex reg = new Regex(@"\{\{(.*?)\}\}");
 
             List<Bitmap> leftBitmaps = new();
@@ -159,7 +168,7 @@ namespace CameraBorder
             {
                 var str = reg.Replace(leftConfig.Format!,
                     m => tmpDict[m.Groups[1].Value] ?? "N/A");
-                GenerateImageByString(str, out Bitmap? tmpBitmap, leftConfig);
+                GenerateImageByString(str, out Bitmap? tmpBitmap, leftConfig, watermarkConfig.BackColor);
                 if (tmpBitmap != null)
                 {
                     leftBitmaps.Add(tmpBitmap);
@@ -169,10 +178,8 @@ namespace CameraBorder
             Bitmap leftResult = new Bitmap(1, 1);
             if (leftBitmaps.Count > 0)
             {
-                _ = ConcatenateImageListColumn(leftBitmaps, out leftResult, watermarkConfig.Layout);
-                //leftResult.Save("leftResult.jpg");
+                _ = ConcatenateImageListColumn(leftBitmaps, out leftResult, watermarkConfig.Layout, watermarkConfig.BackColor);
                 ZoomBitmap(ref leftResult!, (double)watermarkHeight / leftResult!.Height);
-                //leftResult.Save("leftResultS.jpg");
             }
 
             List<Bitmap> middleBitmaps = new();
@@ -180,7 +187,7 @@ namespace CameraBorder
             {
                 var str = reg.Replace(middleConfig.Format!,
                     m => tmpDict[m.Groups[1].Value] ?? "N/A");
-                GenerateImageByString(str, out Bitmap? tmpBitmap, middleConfig);
+                GenerateImageByString(str, out Bitmap? tmpBitmap, middleConfig, watermarkConfig.BackColor);
                 if (tmpBitmap != null)
                 {
                     middleBitmaps.Add(tmpBitmap);
@@ -190,7 +197,7 @@ namespace CameraBorder
             Bitmap middleResult;
             if (middleBitmaps.Count > 0)
             {
-                _ = ConcatenateImageListColumn(middleBitmaps, out middleResult, watermarkConfig.Layout);
+                _ = ConcatenateImageListColumn(middleBitmaps, out middleResult, watermarkConfig.Layout,watermarkConfig.BackColor);
                 ZoomBitmap(ref middleResult!, (double)watermarkHeight / middleResult!.Height);
             }
 
@@ -199,7 +206,7 @@ namespace CameraBorder
             {
                 var str = reg.Replace(rightConfig.Format!,
                     m => tmpDict[m.Groups[1].Value] ?? "N/A");
-                GenerateImageByString(str, out Bitmap? tmpBitmap, rightConfig);
+                GenerateImageByString(str, out Bitmap? tmpBitmap, rightConfig, watermarkConfig.BackColor);
                 if (tmpBitmap != null)
                 {
                     rightBitmaps.Add(tmpBitmap);
@@ -209,31 +216,34 @@ namespace CameraBorder
             Bitmap rightResult = new(1, 1);
             if (rightBitmaps.Count > 0)
             {
-                _ = ConcatenateImageListColumn(rightBitmaps, out rightResult, watermarkConfig.Layout);
-                //rightResult.Save("rightSave.jpg");
+                _ = ConcatenateImageListColumn(rightBitmaps, out rightResult, watermarkConfig.Layout, watermarkConfig.BackColor);
                 ZoomBitmap(ref rightResult!, (double)watermarkHeight / rightResult!.Height);
-                //rightResult.Save("rightSaveS.jpg");
             }
 
             int borderWidth = 0;
+            double left_scale = 0.25 * leftBitmaps.Count;
+            double right_scale = 0.25 * rightBitmaps.Count;
             switch (watermarkConfig.Layout)
             {
                 case WatermarkLayout.Left:
-                    borderWidth = (int)(logoBitmap.Height * 0.2);
-                    ZoomBitmap(ref leftResult, 0.8);
-                    ZoomBitmap(ref rightResult, 0.8);
-                    _ = ConcatenateImageListRow(ref logoBitmap, ref leftResult, ref rightResult, watermarkConfig.Layout, watermarkWidth,
-                        watermarkHeight, out result);
+                    borderWidth = (int)(logoBitmap.Height *  (t.PhotoWidth>t.PhotoHeight ? 0.28 : 0.25));
+                    
+                    ZoomBitmap(ref leftResult, left_scale);
+                    ZoomBitmap(ref rightResult, right_scale);
+                    ZoomBitmap(ref logoBitmap, 0.8);
+                    _ = ConcatenateImageListRow(ref logoBitmap, ref leftResult, ref rightResult, watermarkConfig.Layout,
+                        watermarkWidth,
+                        watermarkHeight, out result,watermarkConfig.BackColor);
                     break;
                 case WatermarkLayout.Right:
-                    
-                    
-                    borderWidth = (int)(leftResult.Height * 0.2);
-                    ZoomBitmap(ref leftResult, 0.8);
-                    ZoomBitmap(ref logoBitmap, 0.8);
-                    ZoomBitmap(ref rightResult, 0.8);
+
+
+                    borderWidth = (int)(logoBitmap.Height * (t.PhotoWidth > t.PhotoHeight ? 0.28 : 0.25));
+                    ZoomBitmap(ref leftResult, left_scale);
+                    ZoomBitmap(ref logoBitmap, 0.6);
+                    ZoomBitmap(ref rightResult, right_scale);
                     _ = ConcatenateImageListRow(ref leftResult, ref logoBitmap, ref rightResult, watermarkConfig.Layout,
-                        watermarkWidth, watermarkHeight, out result, (watermarkConfig.WhiteFill) ? 0 : borderWidth);
+                        watermarkWidth, watermarkHeight, out result,watermarkConfig.BackColor ,(watermarkConfig.WhiteFill) ? 0 : borderWidth);
                     break;
                 case WatermarkLayout.Middle:
                     break;
@@ -278,9 +288,10 @@ namespace CameraBorder
 
             }
 
-            update($"Saving => {filename}", 10);
-            ConcatenateSrcImageAndWatermark(ref orgBitmap, ref result, (watermarkConfig.WhiteFill)? borderWidth : 0);
-            orgBitmap.Save(filename+"_done.jpg");
+            update($@"{fileNameEasy}", $"Saving", 0);
+            ConcatenateSrcImageAndWatermark(ref orgBitmap, ref result, watermarkConfig.BackColor,(watermarkConfig.WhiteFill) ? borderWidth : 0);
+
+            orgBitmap.Save(outputFileName);
 
             foreach (var left in leftBitmaps)
             {
@@ -296,25 +307,25 @@ namespace CameraBorder
             {
                 midd.Dispose();
             }
+
             orgImg.Dispose();
             orgBitmap.Dispose();
-            update($@"Success!", 2);
+            update($@"{fileNameEasy}", $@"Done!", 0);
             return false;
         }
-
-        public void StartGenerateAsync(GenerateSuccess success, GenerateFail fail, UpdateStage update, List<string> fileList, WatermarkConfig config, int count = 4)
+        
+        public async void StartGenerateAsync(GenerateSuccess success, GenerateFail fail, UpdateStage update,
+            List<string> fileList, WatermarkConfig config, string outputPath, int count = 4)
         {
-            List < Task<bool> > tasks = new();
+            List<Task<bool>> tasks = new();
             foreach (var filename in fileList)
             {
                 var reason = "";
-                //tasks.Add(new Task<bool>(()=> GenerateWatermark(filename, ref reason, update, config)));
-                Task.Run(() => GenerateWatermark(filename, ref reason, update, config));
+                tasks.Add(Task.Run(() => GenerateWatermark(filename, ref reason, update, config, outputPath)));
             }
-            
         }
 
-        private bool GenerateImageByString(string text, out Bitmap? image, CharacterConfig? fontConfig)
+        private bool GenerateImageByString(string text, out Bitmap? image, CharacterConfig? fontConfig, Color backColor)
         {
             if (fontConfig == null)
             {
@@ -322,23 +333,23 @@ namespace CameraBorder
                 return false;
             }
 
-            var stringFont = new Font((fontConfig.FontBold) ? pfc!.Families[1] : pfc!.Families[0], fontConfig.FontSize, (fontConfig.FontBold) ? FontStyle.Bold : FontStyle.Regular);
+            var stringFont = new Font((fontConfig.FontBold) ? pfc!.Families[1] : pfc!.Families[0], fontConfig.FontSize,
+                (fontConfig.FontBold) ? FontStyle.Bold : FontStyle.Regular);
             Graphics g = Graphics.FromImage(new Bitmap(1, 1));
             SizeF sizeF = g.MeasureString(text, stringFont);
             Brush brush = new SolidBrush(fontConfig.FontColor);
             PointF pf = new PointF(0, 0);
-            Bitmap img = new Bitmap(Convert.ToInt32(sizeF.Width)+1, Convert.ToInt32(sizeF.Height)+1);
+            Bitmap img = new Bitmap(Convert.ToInt32(sizeF.Width) + 1, Convert.ToInt32(sizeF.Height) + 1);
             g = Graphics.FromImage(img);
-            var rect = new Rectangle(0,0,Convert.ToInt32(sizeF.Width)+1, Convert.ToInt32(sizeF.Height) + 1);
+            var rect = new Rectangle(0, 0, Convert.ToInt32(sizeF.Width) + 1, Convert.ToInt32(sizeF.Height) + 1);
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-            g.FillRectangle(new SolidBrush(Color.White), rect);
+            g.FillRectangle(new SolidBrush(backColor), rect);
             g.DrawString(text, stringFont, brush, rect);
-            //img.Save("test.jpg");
             image = img;
             return true;
         }
 
-        private bool ConcatenateImageListColumn(List<Bitmap> bitmaps, out Bitmap result, WatermarkLayout layout)
+        private bool ConcatenateImageListColumn(List<Bitmap> bitmaps, out Bitmap result, WatermarkLayout layout, Color backColor)
         {
             int widthMax = 0;
             int heightSum = 0;
@@ -348,12 +359,13 @@ namespace CameraBorder
                 {
                     widthMax = bitmap.Width;
                 }
+
                 heightSum += bitmap.Height;
             }
 
             Bitmap img = new Bitmap(widthMax + 1, heightSum + 1);
             Graphics g = Graphics.FromImage(img);
-            g.FillRectangle(new SolidBrush(Color.White), new Rectangle(0, 0, widthMax + 1, heightSum + 1));
+            g.FillRectangle(new SolidBrush(backColor), new Rectangle(0, 0, widthMax + 1, heightSum + 1));
             var lastHeight = 0;
             foreach (var bitmap in bitmaps)
             {
@@ -362,46 +374,53 @@ namespace CameraBorder
                     WatermarkLayout.Left => 0,
                     //WatermarkLayout.Right => widthMax - bitmap.Width,
                     WatermarkLayout.Right => 0,
-                    WatermarkLayout.Middle=>widthMax/2 - bitmap.Width/2,
+                    WatermarkLayout.Middle => widthMax / 2 - bitmap.Width / 2,
                     _ => 1,
                 };
-                g.DrawImage(bitmap, currWidth, lastHeight,  bitmap.Width, bitmap.Height);
+                g.DrawImage(bitmap, currWidth, lastHeight, bitmap.Width, bitmap.Height);
                 lastHeight += bitmap.Height;
             }
+
             g.Dispose();
             result = img;
-            //img.Save("test1.jpg");
             return true;
 
         }
 
         private bool ConcatenateImageListRow(ref Bitmap left, ref Bitmap mid, ref Bitmap right,
-            WatermarkLayout layout, int width, int height, out Bitmap? result, int whiteBorderWidth = 0)
+            WatermarkLayout layout, int width, int height, out Bitmap? result, Color backColor, int whiteBorderWidth = 0)
         {
             Bitmap img = new Bitmap(width, height);
             Graphics g = Graphics.FromImage(img);
-            g.FillRectangle(new SolidBrush(Color.White), new Rectangle(0, 0, width, height));
+            g.FillRectangle(new SolidBrush(backColor), new Rectangle(0, 0, width, height));
             int lineBlankWidth = (int)(width * 0.015);
             if (layout == WatermarkLayout.Middle)
             {
-                g.DrawImage(mid, (width-mid.Width)/2, (height-mid.Height)/2, mid.Width, mid.Height);
+                g.DrawImage(mid, (width - mid.Width) / 2, (height - mid.Height) / 2, mid.Width, mid.Height);
 
                 result = img;
                 return true;
-            } else if (layout == WatermarkLayout.Right)
+            }
+            else if (layout == WatermarkLayout.Right)
             {
-                g.DrawImage(left, 0 + whiteBorderWidth, (height-left.Height)/2, left.Width, left.Height);
-                g.DrawImage(right, (width-right.Width-whiteBorderWidth), (height-right.Height)/2, right.Width, right.Height);
-                g.DrawImage(mid, width-right.Width-mid.Width - lineBlankWidth - whiteBorderWidth, (height - right.Height) / 2, mid.Width, mid.Height);
-                g.DrawLine(new Pen(Color.Gray, 5), width-right.Width- lineBlankWidth/2 - whiteBorderWidth, (height - right.Height) / 2, width-right.Width- lineBlankWidth /2- whiteBorderWidth, (height-right.Height)/2+right.Height);
+                g.DrawImage(left, 0 + whiteBorderWidth, (height - left.Height) / 2, left.Width, left.Height);
+                g.DrawImage(right, (width - right.Width - whiteBorderWidth), (height - right.Height) / 2, right.Width,
+                    right.Height);
+                g.DrawImage(mid, width - right.Width - mid.Width - lineBlankWidth - whiteBorderWidth,
+                    (height - mid.Height) / 2, mid.Width, mid.Height);
+                g.DrawLine(new Pen(Color.Gray, 5), width - right.Width - lineBlankWidth / 2 - whiteBorderWidth,
+                    (height - right.Height) / 2, width - right.Width - lineBlankWidth / 2 - whiteBorderWidth,
+                    (height - right.Height) / 2 + right.Height);
 
                 result = img;
                 return true;
-            } else if (layout == WatermarkLayout.Left)
+            }
+            else if (layout == WatermarkLayout.Left)
             {
-                g.DrawImage(left, 0+whiteBorderWidth, (height - left.Height) / 2, left.Width, left.Height);
-                g.DrawImage(mid, left.Width+whiteBorderWidth+20, (height-mid.Height)/2, mid.Width, mid.Height);
-                g.DrawImage(right, (width - right.Width - whiteBorderWidth), (height - right.Height) / 2, right.Width, right.Height);
+                g.DrawImage(left, 0 + whiteBorderWidth, (height - left.Height) / 2, left.Width, left.Height);
+                g.DrawImage(mid, left.Width + whiteBorderWidth + 20, (height - mid.Height) / 2, mid.Width, mid.Height);
+                g.DrawImage(right, (width - right.Width - whiteBorderWidth), (height - right.Height) / 2, right.Width,
+                    right.Height);
 
                 result = img;
                 return true;
@@ -411,7 +430,7 @@ namespace CameraBorder
                 result = null;
                 return false;
             }
-            
+
             return true;
         }
 
@@ -428,328 +447,13 @@ namespace CameraBorder
             g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
             g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-            g.DrawImage(bitmap, new Rectangle(0, 0, dstWidth, dstHeight), 0, 0, bitmap.Width, bitmap.Height, GraphicsUnit.Pixel);
+            g.DrawImage(bitmap, new Rectangle(0, 0, dstWidth, dstHeight), 0, 0, bitmap.Width, bitmap.Height,
+                GraphicsUnit.Pixel);
             bitmap.Dispose();
             g.Dispose();
             bitmap = destBitmap;
             return true;
         }
 
-        public void Test()
-        {
-            
-            GenerateImageByString("Hello World", out Bitmap? image,
-                new CharacterConfig()
-                    { FontBold = true, FontFamily = @"微软雅黑", FontColor = Color.Black, FontSize = 122, Format = "" });
-            GenerateImageByString("Hello World1", out Bitmap? image1,
-                new CharacterConfig()
-                    { FontBold = true, FontFamily = @"微软雅黑", FontColor = Color.Black, FontSize = 122, Format = "" });
-            GenerateImageByString("Hello World2", out Bitmap? image2,
-                new CharacterConfig()
-                    { FontBold = true, FontFamily = @"微软雅黑", FontColor = Color.Black, FontSize = 122, Format = "" });
-            var bitmapList = new List<Bitmap>
-            {
-                image,
-                image1,
-                image2,
-            };
-            ConcatenateImageListColumn(bitmapList, out Bitmap? result1, WatermarkLayout.Middle);
-
-            GenerateImageByString("Hello World3", out Bitmap? image3,
-                new CharacterConfig()
-                    { FontBold = false, FontFamily = @"微软雅黑", FontColor = Color.Black, FontSize = 122, Format = "" });
-            GenerateImageByString("Hello World4", out Bitmap? image4,
-                new CharacterConfig()
-                    { FontBold = false, FontFamily = @"微软雅黑", FontColor = Color.Black, FontSize = 122, Format = "" });
-            GenerateImageByString("Hello World5", out Bitmap? image5,
-                new CharacterConfig()
-                    { FontBold = false, FontFamily = @"微软雅黑", FontColor = Color.Black, FontSize = 122, Format = "" });
-            var bitmapList1 = new List<Bitmap>
-            {
-                image3,
-                image4,
-                image5,
-            };
-            ConcatenateImageListColumn(bitmapList1, out Bitmap? result2, WatermarkLayout.Middle);
-
-            GenerateImageByString("Hello World6", out Bitmap? image6,
-                new CharacterConfig()
-                    { FontBold = false, FontFamily = @"微软雅黑", FontColor = Color.Black, FontSize = 122, Format = "" });
-            GenerateImageByString("Hello World7", out Bitmap? image7,
-                new CharacterConfig()
-                    { FontBold = false, FontFamily = @"微软雅黑", FontColor = Color.Black, FontSize = 122, Format = "" });
-            GenerateImageByString("Hello World8", out Bitmap? image8,
-                new CharacterConfig()
-                    { FontBold = false, FontFamily = @"微软雅黑", FontColor = Color.Black, FontSize = 122, Format = "" });
-            var bitmapList2 = new List<Bitmap>
-            {
-                image3,
-                image4,
-                //image5,
-            };
-            ConcatenateImageListColumn(bitmapList2, out Bitmap? result3, WatermarkLayout.Middle);
-
-            var logoImage = Image.FromFile("./logos/nikon.png");
-            Bitmap logoBitmap = new Bitmap(logoImage);
-            ZoomBitmap(ref logoBitmap, 0.3);
-            result2.Save("22222.jpg");
-            Trace.WriteLine($@"result2.Height = > {result2.Height} logo.Height = > {logoBitmap.Height}");
-            ZoomBitmap(ref result2, (double)logoBitmap.Height/result2.Height);
-            result2.Save("22222z.jpg");
-            Trace.WriteLine($@"result3.Height = > {result3.Height} logo.Height = > {logoBitmap.Height}");
-            ZoomBitmap(ref result3, (double)logoBitmap.Height/result3.Height) ;
-
-            ConcatenateImageListRow(ref logoBitmap, ref result2, ref result3, WatermarkLayout.Left, logoBitmap.Width+result2.Width+result3.Width +300, logoBitmap.Height, out Bitmap? result);
-            result?.Save("hhhh.jpg");
-            
-            logoBitmap.Save("newlogo.jpg");
-            logoBitmap.Dispose();
-            
-
-        }
-
-        public void Test1()
-        {
-            //string filePath = "nk_z9_export.jpg";
-            //string filePath = "sony_a7r5_export.jpg";
-            //string filePath = "sony_a7m4_tl.jpg";
-
-            //string filePath = ("sony_a7r5_mine.JPG");
-            //string filePath = ("sony_a7r5_test.JPG");
-            //string filePath = ("sony_a7r5_gps.JPG");
-            //string filePath = ("nk_z8.JPG");
-            //string filePath = ("sony_a1.JPG");
-            //string filePath = ("sony_a7c2.JPG");
-            string filePath = ("canon_r5.JPG");
-            //string filePath = ("nk_z9.JPG");
-            //string filePath = "DSC07087.jpg";
-
-
-
-            var config = new WatermarkConfig()
-            {
-                ArtistName = null,
-                BackColor = Color.White,
-                CopyrightInfo = "c",
-                //Layout = WatermarkLayout.Right,
-                Layout = WatermarkLayout.Right,
-                LeftCharacterConfigs = new List<CharacterConfig>()
-                {
-                    new()
-                    {
-                        FontFamily = "a",
-                        FontBold = true,
-                        FontColor = Color.Red,
-                        FontSize = 122,
-                        Format = "{{CameraModel}}",
-                    },
-                    new()
-                    {
-                        FontFamily = "a",
-                        FontBold = true,
-                        FontColor = Color.Blue,
-                        FontSize = 122,
-                        Format = "汪淼是小受的{{LensModel}}",
-                    },
-                    new()
-                    {
-                        FontFamily = "a",
-                        FontBold = true,
-                        FontColor = Color.Black,
-                        FontSize = 122,
-                        Format = "{{FocalLength}} {{ApertureFNumber}} {{ExposureTime}} {{IsoInfo}} {{ExposureCompensation}}",
-                    },
-
-                },
-                RightCharacterConfigs = new List<CharacterConfig>()
-                {
-                    new()
-                    {
-                        FontFamily = "a",
-                        FontBold = true,
-                        FontColor = Color.Black,
-                        FontSize = 122,
-                        Format = "{{ShootingDate}} {{ShootingTime}}",
-                    },
-                    new()
-                    {
-                        FontFamily = "a",
-                        FontBold = false,
-                        FontColor = Color.Black,
-                        FontSize = 122,
-                        Format = "{{ShootingLocation}}",
-                    },
-                    new()
-                    {
-                        FontFamily = "a",
-                        FontBold = false,
-                        FontColor = Color.Green,
-                        FontSize = 122,
-                        Format = "{{Artist}}",
-                    },
-
-                },
-                MiddleCharacterConfigs = new List<CharacterConfig>()
-                {
-                    new()
-                    {
-                        FontFamily = "a",
-                        FontBold = true,
-                        FontColor = Color.Black,
-                        FontSize = 122,
-                        Format = "{{CameraManufacturer}} {{CameraModel}}",
-                    },
-                    new()
-                    {
-                        FontFamily = "a",
-                        FontBold = true,
-                        FontColor = Color.Black,
-                        FontSize = 122,
-                        Format = "{{CameraSerialNumber}} {{LensModel}}",
-                    },
-                    new()
-                    {
-                        FontFamily = "a",
-                        FontBold = true,
-                        FontColor = Color.Black,
-                        FontSize = 122,
-                        Format = "{{ExposureTime}} {{ApertureFNumber}}",
-                    },
-
-                },
-                OverwriteArtistName = false,
-                OverwriteCopyright = false,
-                WhiteFill = true,
-            };
-            string reason = "";
-            GenerateWatermark(filePath, ref reason, ((stage, process) =>
-            {
-
-            }), config);
-        }
-
-        public void Test3()
-        {
-            var config = new WatermarkConfig()
-            {
-                ArtistName = null,
-                BackColor = Color.White,
-                CopyrightInfo = "c",
-                //Layout = WatermarkLayout.Right,
-                Layout = WatermarkLayout.Right,
-                LeftCharacterConfigs = new List<CharacterConfig>()
-                {
-                    new()
-                    {
-                        FontFamily = "a",
-                        FontBold = true,
-                        FontColor = Color.Red,
-                        FontSize = 122,
-                        Format = "{{CameraModel}}",
-                    },
-                    new()
-                    {
-                        FontFamily = "a",
-                        FontBold = true,
-                        FontColor = Color.Blue,
-                        FontSize = 122,
-                        Format = "汪淼是小受的{{LensModel}}",
-                    },
-                    new()
-                    {
-                        FontFamily = "a",
-                        FontBold = true,
-                        FontColor = Color.Black,
-                        FontSize = 122,
-                        Format = "{{FocalLength}} {{ApertureFNumber}} {{ExposureTime}} {{IsoInfo}} {{ExposureCompensation}}",
-                    },
-
-                },
-                RightCharacterConfigs = new List<CharacterConfig>()
-                {
-                    new()
-                    {
-                        FontFamily = "a",
-                        FontBold = true,
-                        FontColor = Color.Black,
-                        FontSize = 122,
-                        Format = "{{ShootingDate}} {{ShootingTime}}",
-                    },
-                    new()
-                    {
-                        FontFamily = "a",
-                        FontBold = false,
-                        FontColor = Color.Black,
-                        FontSize = 122,
-                        Format = "{{ShootingLocation}}",
-                    },
-                    new()
-                    {
-                        FontFamily = "a",
-                        FontBold = false,
-                        FontColor = Color.Green,
-                        FontSize = 122,
-                        Format = "{{Artist}}",
-                    },
-
-                },
-                MiddleCharacterConfigs = new List<CharacterConfig>()
-                {
-                    new()
-                    {
-                        FontFamily = "a",
-                        FontBold = true,
-                        FontColor = Color.Black,
-                        FontSize = 122,
-                        Format = "{{CameraManufacturer}} {{CameraModel}}",
-                    },
-                    new()
-                    {
-                        FontFamily = "a",
-                        FontBold = true,
-                        FontColor = Color.Black,
-                        FontSize = 122,
-                        Format = "{{CameraSerialNumber}} {{LensModel}}",
-                    },
-                    new()
-                    {
-                        FontFamily = "a",
-                        FontBold = true,
-                        FontColor = Color.Black,
-                        FontSize = 122,
-                        Format = "{{ExposureTime}} {{ApertureFNumber}}",
-                    },
-
-                },
-                OverwriteArtistName = false,
-                OverwriteCopyright = false,
-                WhiteFill = true,
-            };
-            List<string> fileList = new List<string>()
-            {
-                "nk_z9_export.jpg",
-                "sony_a7r5_export.jpg",
-                "sony_a7m4_tl.jpg",
-                "sony_a7r5_mine.JPG",
-                "sony_a7r5_test.JPG",
-                "sony_a7r5_gps.JPG",
-                "nk_z8.JPG",
-                "sony_a1.JPG",
-                "sony_a7c2.JPG",
-                "canon_r5.JPG",
-                "nk_z9.JPG",
-                "DSC07087.jpg",
-            };
-            StartGenerateAsync(filename =>
-            {
-
-            }, (filename, reason) =>
-            {
-
-            }, (stage, process) =>
-            {
-                Trace.WriteLine($@"Stage===>{stage}, Process===>{process}");
-            }, fileList, config, 4);
-        }
     }
 }

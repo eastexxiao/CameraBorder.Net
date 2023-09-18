@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:CameraBorder" xmlns:viewmodel="clr-namespace:CameraBorder.ViewModel" d:DataContext="{d:DesignInstance Type=viewmodel:CameraBorderWindowViewModel}"
+        xmlns:local="clr-namespace:CameraBorder" 
         mc:Ignorable="d"
         Title="CameraBorderWindow" Height="800" Width="1300">
     <Grid Width="Auto" Margin="6" ShowGridLines="True">
@@ -18,7 +18,36 @@
                     <RowDefinition Height="*"></RowDefinition>
                     <RowDefinition Height="*"></RowDefinition>
                 </Grid.RowDefinitions>
-                <CheckBox Grid.Row="0" Name ="EnableWhiteBorder" Content="启用白边填充" HorizontalAlignment="Center" VerticalAlignment="Center"></CheckBox>
+                <Grid Grid.Row="0" Margin="6" ShowGridLines="True">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1.8*"></ColumnDefinition>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                        <ColumnDefinition Width="1.5*"></ColumnDefinition>
+                        <ColumnDefinition Width="2*"></ColumnDefinition>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                        <ColumnDefinition Width="2*"></ColumnDefinition>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                        <ColumnDefinition Width="3*"></ColumnDefinition>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <CheckBox Grid.Column="0" Name ="EnableWhiteBorder" Content="启用白边填充" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="True"></CheckBox>
+                    <Label Grid.Column="2" Content="背景颜色：" VerticalAlignment="Center" HorizontalAlignment="Right"></Label>
+                    <ComboBox Grid.Column="3" Name="CbxBackColor"  >
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Rectangle Fill="{Binding Name}" Width="16" Height="16" Margin="0,2,5,2" />
+                                    <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <CheckBox Grid.Column="5" Name ="Enable35mm" Content="使用等效焦距" HorizontalAlignment="Center" VerticalAlignment="Center"></CheckBox>
+                    <Label Grid.Column="7" Content="摄影师："></Label>
+                    <TextBox Name="TxtArtist" Grid.Column="8" Margin="1"></TextBox>
+                </Grid>
+                
                 <Grid Grid.Row="1" Width="Auto" ShowGridLines="True" Margin="6">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"></ColumnDefinition>
@@ -60,10 +89,10 @@
                                 <ColumnDefinition Width="*"></ColumnDefinition>
                                 <ColumnDefinition Width="2*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" Name="ChkLeftLine1Enable" HorizontalAlignment="Center" VerticalAlignment="Center" Content="第一行" IsEnabled="{Binding ElementName=LeftRadio, Path=IsChecked}"></CheckBox>
-                            <TextBox Grid.Column="1" Name="TextLeftLine1"  Margin="1" Height="Auto" Width="150" HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="{Binding ElementName=ChkLeftLine1Enable,Path=IsChecked}" Text=""></TextBox>
-                            <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="加粗" Name="ChkLeftLine1Bold" IsEnabled="{Binding ElementName=ChkLeftLine1Enable,Path=IsChecked}"></CheckBox>
-                            <ComboBox Grid.Column="3" Name="CbxLeftLine1Color" IsEnabled="{Binding ElementName=ChkLeftLine1Enable, Path=IsChecked}" >
+                            <CheckBox Grid.Column="0" Name="ChkLeftLine1Enable" HorizontalAlignment="Center" VerticalAlignment="Center" Content="第一行" ></CheckBox>
+                            <TextBox Grid.Column="1" Name="TextLeftLine1"  Margin="1"  Text="{}{{CameraModel}}" IsEnabled="{Binding ElementName=ChkLeftLine1Enable, Path=IsChecked}"></TextBox>
+                            <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="加粗" Name="ChkLeftLine1Bold" IsEnabled="{Binding ElementName=ChkLeftLine1Enable, Path=IsChecked}" IsChecked="True" ></CheckBox>
+                            <ComboBox Grid.Column="3" Name="CbxLeftLine1Color"  IsEnabled="{Binding ElementName=ChkLeftLine1Enable, Path=IsChecked}">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -81,10 +110,10 @@
                                 <ColumnDefinition Width="*"></ColumnDefinition>
                                 <ColumnDefinition Width="2*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" Name="ChkLeftLine2Enable" HorizontalAlignment="Center" VerticalAlignment="Center" Content="第二行" IsEnabled="{Binding ElementName=LeftRadio, Path=IsChecked}"></CheckBox>
-                            <TextBox Grid.Column="1" Name="TextLeftLine2"  Margin="1" Height="Auto" Width="150" HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="{Binding ElementName=ChkLeftLine2Enable,Path=IsChecked}" Text=""></TextBox>
-                            <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="加粗" Name="ChkLeftLine2Bold" IsEnabled="{Binding ElementName=ChkLeftLine2Enable,Path=IsChecked}"></CheckBox>
-                            <ComboBox Grid.Column="3" Name="CbxLeftLine2Color" IsEnabled="{Binding ElementName=ChkLeftLine2Enable, Path=IsChecked}" >
+                            <CheckBox Grid.Column="0" Name="ChkLeftLine2Enable" HorizontalAlignment="Center" VerticalAlignment="Center" Content="第二行" ></CheckBox>
+                            <TextBox Grid.Column="1" Name="TextLeftLine2"  Margin="1"  Text="{}{{LensModel}}" IsEnabled="{Binding ElementName=ChkLeftLine2Enable, Path=IsChecked}"></TextBox>
+                            <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="加粗" Name="ChkLeftLine2Bold" IsEnabled="{Binding ElementName=ChkLeftLine2Enable, Path=IsChecked}" IsChecked="True" ></CheckBox>
+                            <ComboBox Grid.Column="3" Name="CbxLeftLine2Color"   IsEnabled="{Binding ElementName=ChkLeftLine2Enable, Path=IsChecked}">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -102,10 +131,10 @@
                                 <ColumnDefinition Width="*"></ColumnDefinition>
                                 <ColumnDefinition Width="2*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" Name="ChkLeftLine3Enable" HorizontalAlignment="Center" VerticalAlignment="Center" Content="第三行" IsEnabled="{Binding ElementName=LeftRadio, Path=IsChecked}"></CheckBox>
-                            <TextBox Grid.Column="1" Name="TextLeftLine3"  Margin="1" Height="Auto" Width="150" HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="{Binding ElementName=ChkLeftLine3Enable,Path=IsChecked}" Text=""></TextBox>
-                            <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="加粗" Name="ChkLeftLine3Bold" IsEnabled="{Binding ElementName=ChkLeftLine3Enable,Path=IsChecked}"></CheckBox>
-                            <ComboBox Grid.Column="3" Name="CbxLeftLine3Color" IsEnabled="{Binding ElementName=ChkLeftLine3Enable, Path=IsChecked}" >
+                            <CheckBox Grid.Column="0" Name="ChkLeftLine3Enable" HorizontalAlignment="Center" VerticalAlignment="Center" Content="第三行" ></CheckBox>
+                            <TextBox Grid.Column="1" Name="TextLeftLine3"  Margin="1" Text="{}{{FocalLength}} {{ApertureFNumber}} {{ExposureTime}} {{IsoInfo}}"  IsEnabled="{Binding ElementName=ChkLeftLine3Enable, Path=IsChecked}"></TextBox>
+                            <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="加粗" Name="ChkLeftLine3Bold"  IsEnabled="{Binding ElementName=ChkLeftLine3Enable, Path=IsChecked}"></CheckBox>
+                            <ComboBox Grid.Column="3" Name="CbxLeftLine3Color"  IsEnabled="{Binding ElementName=ChkLeftLine3Enable, Path=IsChecked}"  >
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -124,10 +153,10 @@
                                 <ColumnDefinition Width="*"></ColumnDefinition>
                                 <ColumnDefinition Width="2*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" Name="ChkRightLine1Enable" HorizontalAlignment="Center" VerticalAlignment="Center" Content="第一行" IsEnabled="{Binding ElementName=RightRadio, Path=IsChecked}"></CheckBox>
-                            <TextBox Grid.Column="1" Name="TextRightLine1"  Margin="1" Height="Auto" Width="150" HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="{Binding ElementName=ChkRightLine1Enable,Path=IsChecked}" Text=""></TextBox>
-                            <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="加粗" Name="ChkRightLine1Bold" IsEnabled="{Binding ElementName=ChkRightLine1Enable,Path=IsChecked}"></CheckBox>
-                            <ComboBox Grid.Column="3" Name="CbxRightLine1Color" IsEnabled="{Binding ElementName=ChkRightLine1Enable, Path=IsChecked}" >
+                            <CheckBox Grid.Column="0" Name="ChkRightLine1Enable" HorizontalAlignment="Center" VerticalAlignment="Center" Content="第一行" ></CheckBox>
+                            <TextBox Grid.Column="1" Name="TextRightLine1"  Margin="1" Text="{}@{{Artist}}" IsEnabled="{Binding ElementName=ChkRightLine1Enable, Path=IsChecked}"></TextBox>
+                            <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="加粗" Name="ChkRightLine1Bold"  IsEnabled="{Binding ElementName=ChkRightLine1Enable, Path=IsChecked}" IsChecked="True"></CheckBox>
+                            <ComboBox Grid.Column="3" Name="CbxRightLine1Color"  IsEnabled="{Binding ElementName=ChkRightLine1Enable, Path=IsChecked}" >
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -145,10 +174,10 @@
                                 <ColumnDefinition Width="*"></ColumnDefinition>
                                 <ColumnDefinition Width="2*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" Name="ChkRightLine2Enable" HorizontalAlignment="Center" VerticalAlignment="Center" Content="第二行" IsEnabled="{Binding ElementName=RightRadio, Path=IsChecked}"></CheckBox>
-                            <TextBox Grid.Column="1" Name="TextRightLine2"  Margin="1" Height="Auto" Width="150" HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="{Binding ElementName=ChkRightLine2Enable,Path=IsChecked}" Text=""></TextBox>
-                            <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="加粗" Name="ChkRightLine2Bold" IsEnabled="{Binding ElementName=ChkRightLine2Enable,Path=IsChecked}"></CheckBox>
-                            <ComboBox Grid.Column="3" Name="CbxRightLine2Color" IsEnabled="{Binding ElementName=ChkRightLine2Enable, Path=IsChecked}" >
+                            <CheckBox Grid.Column="0" Name="ChkRightLine2Enable" HorizontalAlignment="Center" VerticalAlignment="Center" Content="第二行" ></CheckBox>
+                            <TextBox Grid.Column="1" Name="TextRightLine2"  Margin="1" Text="{}{{ShootingLocation}}"  IsEnabled="{Binding ElementName=ChkRightLine2Enable, Path=IsChecked}"></TextBox>
+                            <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="加粗" Name="ChkRightLine2Bold"   IsEnabled="{Binding ElementName=ChkRightLine2Enable, Path=IsChecked}"></CheckBox>
+                            <ComboBox Grid.Column="3" Name="CbxRightLine2Color"  IsEnabled="{Binding ElementName=ChkRightLine2Enable, Path=IsChecked}" >
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -166,10 +195,10 @@
                                 <ColumnDefinition Width="*"></ColumnDefinition>
                                 <ColumnDefinition Width="2*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" Name="ChkRightLine3Enable" HorizontalAlignment="Center" VerticalAlignment="Center" Content="第三行" IsEnabled="{Binding ElementName=RightRadio, Path=IsChecked}"></CheckBox>
-                            <TextBox Grid.Column="1" Name="TextRightLine3"  Margin="1" Height="Auto" Width="150" HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="{Binding ElementName=ChkRightLine3Enable,Path=IsChecked}" Text=""></TextBox>
-                            <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="加粗" Name="ChkRightLine3Bold" IsEnabled="{Binding ElementName=ChkRightLine3Enable,Path=IsChecked}"></CheckBox>
-                            <ComboBox Grid.Column="3" Name="CbxRightLine3Color" IsEnabled="{Binding ElementName=ChkRightLine3Enable, Path=IsChecked}" >
+                            <CheckBox Grid.Column="0" Name="ChkRightLine3Enable" HorizontalAlignment="Center" VerticalAlignment="Center" Content="第三行" ></CheckBox>
+                            <TextBox Grid.Column="1" Name="TextRightLine3"  Margin="1"  Text="{}{{ShootingDate}} {{ShootingTime}}"  IsEnabled="{Binding ElementName=ChkRightLine3Enable, Path=IsChecked}"></TextBox>
+                            <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="加粗" Name="ChkRightLine3Bold"  IsEnabled="{Binding ElementName=ChkRightLine3Enable, Path=IsChecked}" ></CheckBox>
+                            <ComboBox Grid.Column="3" Name="CbxRightLine3Color"  IsEnabled="{Binding ElementName=ChkRightLine3Enable, Path=IsChecked}" >
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -214,9 +243,9 @@
                                 <ColumnDefinition Width="*"></ColumnDefinition>
                                 <ColumnDefinition Width="2*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" Name="ChkMiddleLine1Enable" HorizontalAlignment="Center" VerticalAlignment="Center" Content="第一行" IsEnabled="{Binding ElementName=RadioMiddle, Path=IsChecked}"></CheckBox>
-                            <TextBox Grid.Column="1" Name="TextMiddleLine1"  Margin="1" Height="Auto" Width="150" HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="{Binding ElementName=ChkMiddleLine1Enable,Path=IsChecked}" Text=""></TextBox>
-                            <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="加粗" Name="ChkMiddleLine1Bold" IsEnabled="{Binding ElementName=ChkMiddleLine1Enable,Path=IsChecked}"></CheckBox>
+                            <CheckBox Grid.Column="0" Name="ChkMiddleLine1Enable" HorizontalAlignment="Center" VerticalAlignment="Center" Content="第一行" ></CheckBox>
+                            <TextBox Grid.Column="1" Name="TextMiddleLine1"  Margin="1"  Text=""  IsEnabled="{Binding ElementName=ChkMiddleLine1Enable, Path=IsChecked}"></TextBox>
+                            <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="加粗" Name="ChkMiddleLine1Bold" IsEnabled="{Binding ElementName=ChkMiddleLine1Enable, Path=IsChecked}"></CheckBox>
                             <ComboBox Grid.Column="3" Name="CbxMiddleLine1Color" IsEnabled="{Binding ElementName=ChkMiddleLine1Enable, Path=IsChecked}" >
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
@@ -235,10 +264,10 @@
                                 <ColumnDefinition Width="*"></ColumnDefinition>
                                 <ColumnDefinition Width="2*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" Name="ChkMiddleLine2Enable" HorizontalAlignment="Center" VerticalAlignment="Center" Content="第二行" IsEnabled="{Binding ElementName=RadioMiddle, Path=IsChecked}"></CheckBox>
-                            <TextBox Grid.Column="1" Name="TextMiddleLine2"  Margin="1" Height="Auto" Width="150" HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="{Binding ElementName=ChkMiddleLine2Enable,Path=IsChecked}" Text=""></TextBox>
-                            <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="加粗" Name="ChkMiddleLine2Bold" IsEnabled="{Binding ElementName=ChkMiddleLine2Enable,Path=IsChecked}"></CheckBox>
-                            <ComboBox Grid.Column="3" Name="CbxMiddleLine2Color" IsEnabled="{Binding ElementName=ChkMiddleLine2Enable, Path=IsChecked}" >
+                            <CheckBox Grid.Column="0" Name="ChkMiddleLine2Enable" HorizontalAlignment="Center" VerticalAlignment="Center" Content="第二行" ></CheckBox>
+                            <TextBox Grid.Column="1" Name="TextMiddleLine2"  Margin="1" Text="" IsEnabled="{Binding ElementName=ChkMiddleLine2Enable, Path=IsChecked}"></TextBox>
+                            <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="加粗" Name="ChkMiddleLine2Bold" IsEnabled="{Binding ElementName=ChkMiddleLine2Enable, Path=IsChecked}" ></CheckBox>
+                            <ComboBox Grid.Column="3" Name="CbxMiddleLine2Color" IsEnabled="{Binding ElementName=ChkMiddleLine2Enable, Path=IsChecked}"  >
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -256,10 +285,10 @@
                                 <ColumnDefinition Width="*"></ColumnDefinition>
                                 <ColumnDefinition Width="2*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" Name="ChkMiddleLine3Enable" HorizontalAlignment="Center" VerticalAlignment="Center" Content="第三行" IsEnabled="{Binding ElementName=RadioMiddle, Path=IsChecked}"></CheckBox>
-                            <TextBox Grid.Column="1" Name="TextMiddleLine3"  Margin="1" Height="Auto" Width="150" HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="{Binding ElementName=ChkMiddleLine3Enable,Path=IsChecked}"  Text=""></TextBox>
-                            <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="加粗" Name="ChkMiddleLine3Bold" IsEnabled="{Binding ElementName=ChkMiddleLine3Enable,Path=IsChecked}"></CheckBox>
-                            <ComboBox Grid.Column="3" Name="CbxMiddleLine3Color" IsEnabled="{Binding ElementName=ChkMiddleLine3Enable, Path=IsChecked}">
+                            <CheckBox Grid.Column="0" Name="ChkMiddleLine3Enable" HorizontalAlignment="Center" VerticalAlignment="Center" Content="第三行" ></CheckBox>
+                            <TextBox Grid.Column="1" Name="TextMiddleLine3"  Margin="1"  Text="" IsEnabled="{Binding ElementName=ChkMiddleLine3Enable, Path=IsChecked}"></TextBox>
+                            <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Content="加粗" Name="ChkMiddleLine3Bold" IsEnabled="{Binding ElementName=ChkMiddleLine3Enable, Path=IsChecked}" ></CheckBox>
+                            <ComboBox Grid.Column="3" Name="CbxMiddleLine3Color" IsEnabled="{Binding ElementName=ChkMiddleLine3Enable, Path=IsChecked}" >
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -271,6 +300,57 @@
                             </ComboBox>
                         </Grid>
                     </Grid>
+                </Grid>
+            </Grid>
+            <Grid Grid.Column="1" ShowGridLines="True" Margin="6">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2*"></RowDefinition>
+                    <RowDefinition Height="6*"></RowDefinition>
+                    
+                </Grid.RowDefinitions>
+                <TextBox Grid.Row="1" Name="TxtNotice"></TextBox>
+                <Grid Grid.Row="1" ShowGridLines="True" Margin="6">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="0.5*"></RowDefinition>
+                        <RowDefinition Height="5*"></RowDefinition>
+                        <RowDefinition Height="0.5*"></RowDefinition>
+                        <RowDefinition Height="0.5*"></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Margin="6" ShowGridLines="True">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"></ColumnDefinition>
+                            <ColumnDefinition Width="4*"></ColumnDefinition>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Content="选择输入文件夹:" VerticalAlignment="Center" HorizontalAlignment="Center" ></Label>
+                        <TextBox Grid.Column="1"  IsEnabled="False" Name="TxtInputFilePath"></TextBox>
+                        <Button Grid.Column="2" Content="选择" Name="BtnSetInputPath" Click="BtnSetInputPath_Click"></Button>
+                    </Grid>
+                    <ListBox Grid.Row="1" Margin="6" HorizontalContentAlignment="Stretch" Name ="LstFileList">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="3*"></ColumnDefinition>
+                                        <ColumnDefinition Width="*"></ColumnDefinition>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Text="{Binding Key, Mode=OneWay}"></TextBox>
+                                    <TextBox Grid.Column="1" Text="{Binding Value, Mode=OneWay}"></TextBox>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <Grid Grid.Row="2" Margin="6" ShowGridLines="True">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"></ColumnDefinition>
+                            <ColumnDefinition Width="4*"></ColumnDefinition>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Content="选择输出文件夹:" VerticalAlignment="Center" HorizontalAlignment="Center" ></Label>
+                        <TextBox Grid.Column="1"  IsEnabled="False" Name="TxtOutputFilePath"></TextBox>
+                        <Button Grid.Column="2" Content="选择" Name="BtnSetOutputPath" Click="BtnSetOutputPath_OnClick"></Button>
+                    </Grid>
+                    <Button Grid.Row="3" Margin="100,6" Content="开始添加" Name="BtnStartStop" Click="BtnStartStop_Click"></Button>
                 </Grid>
             </Grid>
         </Grid>

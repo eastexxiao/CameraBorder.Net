@@ -112,12 +112,10 @@ namespace CameraBorder
             }
 
 
-            //Trace.WriteLine(@$">>>>>>>>>>{jpegs.GetInt32(JpegDirectory.TagImageHeight)}");
             PhotoWidth = jpegInfo.GetInt32(JpegDirectory.TagImageWidth);
             PhotoHeight = jpegInfo.GetInt32(JpegDirectory.TagImageHeight);
 
             var rotR = exifIfdInfo.TryGetInt32(ExifDirectoryBase.TagOrientation, out var rot);
-            //Trace.WriteLine(@$"Rot=====>{Rot}");
             if (rotR)
             {
                 Rotate = rot;
@@ -154,7 +152,6 @@ namespace CameraBorder
             ApertureFNumber = "f/"+exifSubIfdInfo.GetString(ExifDirectoryBase.TagFNumber);
             IsoInfo = "iso" + exifSubIfdInfo.GetString(ExifDirectoryBase.TagIsoEquivalent);
             var focalLength = exifSubIfdInfo.GetDouble(ExifDirectoryBase.TagFocalLength);
-            //Trace.WriteLine($"FocalLength=====>{focalLength}");
             FocalLength = exifSubIfdInfo.GetString(ExifDirectoryBase.TagFocalLength) + "mm";
             EquivalentFocalLength = exifSubIfdInfo.GetString(ExifDirectoryBase.Tag35MMFilmEquivFocalLength);
             if (EquivalentFocalLength == null)
@@ -186,6 +183,10 @@ namespace CameraBorder
 
             ExposureCompensation = exifSubIfdInfo.GetString(ExifDirectoryBase.TagExposureBias)+"EV";
             Artist = exifIfdInfo.GetString(ExifDirectoryBase.TagArtist);
+            if (string.IsNullOrEmpty(Artist))
+            {
+                Artist = userName;
+            }
             CopyrightInfo = exifIfdInfo.GetString(ExifDirectoryBase.TagCopyright);
 
             var shootTime = exifSubIfdInfo.GetDateTime(ExifDirectoryBase.TagDateTimeOriginal);
