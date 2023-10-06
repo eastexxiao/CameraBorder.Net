@@ -201,8 +201,16 @@ namespace CameraBorder
                 ShootingLocation = gpsInfo.GetGeoLocation()?.ToDmsString();
             }
 
-            var colorSpace = exifSubIfdInfo.GetInt32(ExifDirectoryBase.TagColorSpace);
-            IsSRGB = colorSpace == 1;
+            var colorSpaceRes = exifSubIfdInfo.TryGetInt32(ExifDirectoryBase.TagColorSpace, out var colorSpace);
+            if (colorSpaceRes)
+            {
+                IsSRGB = colorSpace == 1;
+            }
+            else
+            {
+                IsSRGB = true;
+            }
+            
 
             return true;
 

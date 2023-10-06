@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -16,6 +17,7 @@ using CameraBorder.ViewModel;
 using System.Windows.Forms;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Path = System.IO.Path;
 
 namespace CameraBorder
@@ -26,11 +28,11 @@ namespace CameraBorder
 
     
     
-    public partial class CameraBorderWindow : Window
+    public partial class CameraBorderWindow : Window, INotifyPropertyChanged
     {
         
         private WatermarkLayout choice = WatermarkLayout.Left;
-        private Dictionary<string, string> _fileStatus = new();
+        public Dictionary<string, string> _fileStatus = new();
         public CameraBorderWindow()
         {
             InitializeComponent();
@@ -370,5 +372,22 @@ namespace CameraBorder
 
 
         }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+            field = value;
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+
+
     }
 }
